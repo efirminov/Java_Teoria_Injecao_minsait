@@ -13,6 +13,7 @@ import br.com.efirminov.webframeword.annotations.WebframeworkGetMethod;
 import br.com.efirminov.webframeword.annotations.WebframeworkPostMethod;
 import br.com.efirminov.webframeword.datastructures.ControllerMap;
 import br.com.efirminov.webframeword.datastructures.RequestControllerData;
+import br.com.efirminov.webframeword.datastructures.ServiceImplementationMap;
 import br.com.efirminov.webframeword.explorer.ClassExplorer;
 import br.com.efirminov.webframeword.util.WebFrameworkLogger;
 
@@ -60,10 +61,10 @@ public class WebFrameworkWebApplication {
 			// start:
 			tomcat.start();
 			tomcat.getServer().await();
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
 	}
 
 	private static void extractMetadata(Class<?> sourceClass) {
@@ -77,6 +78,14 @@ public class WebFrameworkWebApplication {
 							.equals("br.com.ehmf.webframework.annotations.WebframeworkController")) {
 						WebFrameworkLogger.log("Metadata Explorer", "Found a Controller: " + classe);
 						extractMethods(classe);
+					} else if (classAnnotation.annotationType().getName()
+							.equals("br.com.ehmf.webframework.annotations.WebframeworkService")) {
+						WebFrameworkLogger.log("Metadata Explorer", "Found a Service Implementation: " + classe);
+						for (Class<?> interfaceWeb : Class.forName(classe).getInterfaces()) {
+							WebFrameworkLogger.log("Metadata Explorer",
+									"     Class implements" + interfaceWeb.getName());
+							ServiceImplementationMap.implementations.put(interfaceWeb.getName(), classe);
+						}
 					}
 				}
 			}
@@ -108,7 +117,7 @@ public class WebFrameworkWebApplication {
 					path = ((WebframeworkPostMethod) annotation).value();
 				}
 			}
-			// WebFrameworkLogger.log(" - ", httpMethod + " " + path);
+			// WebFrameworkLogger.log(" - CHAVE: ", httpMethod + path);
 			RequestControllerData getData = new RequestControllerData(httpMethod, path, className, method.getName());
 			ControllerMap.values.put(httpMethod + path, getData);
 		}
